@@ -110,6 +110,7 @@ int main()
             //passing destination Row and Columns
         {
             // - Check destination cell
+            //check 
             if (board[toRow][toCol] == nullptr)
             {
                 // EMPTY CELL = normal move
