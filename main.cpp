@@ -78,6 +78,7 @@ int main()
         cout << "Enter TO position (row col): ";
         cin >> toRow >> toCol;
 
+        // Phase 3: input validation check
         //Check source validity
         // If there is no piece at selected position
         if (board[fromRow][fromCol] == nullptr)
