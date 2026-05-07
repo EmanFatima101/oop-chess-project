@@ -92,7 +92,7 @@ int main()
         
         // Next steps will go here
         // - Check turn (white/black)
-         
+       // Phase 3: turn validation
         if ((board[fromRow][fromCol]->getColor()) == turn)
         {
             cout << "Ok " << endl;
