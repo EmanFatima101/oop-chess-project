@@ -1,11 +1,7 @@
-#include "piece.h"
-#include <iostream>
-using namespace std;
-
-// ================= GLOBAL VARIABLES =================
-int halfMoveClock = 0;
-
-// ================= MENU =================
+#include "piece.h"//including header file
+// ================= GLOBAL VARIABLES (for special moves) =================
+int halfMoveClock = 0;// counts moves for the 50-move draw rule
+// ================= MENU FUNCTIONS =================
 
 void showTitle()
 {
@@ -19,11 +15,20 @@ void showRules()
     system("cls");
 
     cout << "=========== CHESS RULES ===========" << endl;
-    cout << "White moves first." << endl;
-    cout << "Basic chess rules apply." << endl;
-    cout << "Special moves included: Castling, En Passant, Promotion." << endl;
 
-    cout << "\nPress any key..." << endl;
+    cout << "1. White moves first." << endl;
+    cout << "2. Pawns move forward only." << endl;
+    cout << "3. Rooks move horizontally/vertically." << endl;
+    cout << "4. Bishops move diagonally." << endl;
+    cout << "5. Knights move in L shape." << endl;
+    cout << "6. Queen moves in all directions." << endl;
+    cout << "7. King moves one square." << endl;
+    cout << "8. Castling is a special king move." << endl;
+    cout << "9. En Passant is special pawn capture." << endl;
+    cout << "10. Pawn promotion happens at last row." << endl;
+    cout << "11. Checkmate wins the game." << endl;
+
+    cout << "\nPress any key to return..." << endl;
     system("pause");
 }
 
@@ -32,31 +37,35 @@ void aboutProject()
     system("cls");
 
     cout << "=========== PROJECT INFO ===========" << endl;
-    cout << "OOP Chess Game using C++" << endl;
-    cout << "Includes advanced chess mechanics." << endl;
 
-    cout << "\nPress any key..." << endl;
+    cout << "This project demonstrates:" << endl;
+    cout << "- Encapsulation" << endl;
+    cout << "- Inheritance" << endl;
+    cout << "- Polymorphism" << endl;
+    cout << "- Composition" << endl;
+
+    cout << "\nSpecial Features:" << endl;
+    cout << "- Castling" << endl;
+    cout << "- En Passant" << endl;
+    cout << "- Pawn Promotion" << endl;
+    cout << "- Checkmate Detection" << endl;
+    cout << "- Stalemate Detection" << endl;
+
+    cout << "\nPress any key to return..." << endl;
     system("pause");
 }
 
-// ================= BOARD CLEANUP =================
-
-void deleteBoard(Piece* board[8][8])
-{
-    for (int i = 0; i < 8; i++)
-    {
-        for (int j = 0; j < 8; j++)
-        {
-            if (board[i][j] != nullptr)
-            {
+// Function to safely delete board
+void deleteBoard(Piece* board[8][8]) {
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            if (board[i][j] != nullptr) {
                 delete board[i][j];
                 board[i][j] = nullptr;
             }
         }
     }
 }
-
-// ================= MAIN =================
 
 int main()
 {
@@ -66,19 +75,66 @@ int main()
     {
         system("cls");
 
+        // ================= MAIN MENU =================
+
         showTitle();
 
         cout << "1. Start Game" << endl;
         cout << "2. Project Info" << endl;
-        cout << "3. Rules" << endl;
+        cout << "3. Chess Game Rules" << endl;
         cout << "4. Exit" << endl;
 
-        cout << "\nEnter choice: ";
+        cout << "\nEnter Choice: ";
         cin >> choice;
 
         if (choice == 1)
         {
+            // Reset global variables for a fresh game
+            whiteKingMoved = false;
+            blackKingMoved = false;
+            whiteRookAMoved = false;
+            whiteRookHMoved = false;
+            blackRookAMoved = false;
+            blackRookHMoved = false;
+            lastDoublePawnRow = -1;
+            lastDoublePawnCol = -1;
+            lastMoveWasDoublePawn = false;
+            lastDoublePawnColor = "";
+            halfMoveClock = 0;
+
             Piece* board[8][8] = { nullptr };
+
+            // Initialize pawns
+            for (int i = 0; i < 8; i++) {
+                board[1][i] = new Pawn("black", 1, i, 'P');
+                board[6][i] = new Pawn("white", 6, i, 'P');
+            }
+
+            // Initialize rooks
+            board[0][0] = new Rook("black", 0, 0, 'R');
+            board[0][7] = new Rook("black", 0, 7, 'R');
+            board[7][0] = new Rook("white", 7, 0, 'R');
+            board[7][7] = new Rook("white", 7, 7, 'R');
+
+            // Initialize knights
+            board[0][1] = new Knight("black", 0, 1, 'N');
+            board[0][6] = new Knight("black", 0, 6, 'N');
+            board[7][1] = new Knight("white", 7, 1, 'N');
+            board[7][6] = new Knight("white", 7, 6, 'N');
+
+            // Initialize bishops
+            board[0][2] = new Bishop("black", 0, 2, 'B');
+            board[0][5] = new Bishop("black", 0, 5, 'B');
+            board[7][2] = new Bishop("white", 7, 2, 'B');
+            board[7][5] = new Bishop("white", 7, 5, 'B');
+
+            // Initialize queens
+            board[0][3] = new Queen("black", 0, 3, 'Q');
+            board[7][3] = new Queen("white", 7, 3, 'Q');
+
+            // Initialize kings
+            board[0][4] = new King("black", 0, 4, 'K');
+            board[7][4] = new King("white", 7, 4, 'K');
 
             string turn = "white";
             bool gameRunning = true;
@@ -86,18 +142,41 @@ int main()
             while (gameRunning)
             {
                 system("cls");
+                //==================== CHECK FOR GAME END CONDITIONS ====================
 
-                cout << "\nTURN: " << turn << endl;
+                // 1. Checkmate Check
+                string opponent = (turn == "white") ? "black" : "white";
 
-                cout << "\n   A  B  C  D  E  F  G  H" << endl;
-                cout << "  -------------------------" << endl;
-
-                for (int i = 0; i < 8; i++)
+                if (isInCheck(opponent, board) && !hasLegalMoves(opponent, board))
                 {
-                    cout << 8 - i << " |";
+                    cout << "\nCHECKMATE! " << turn << " wins!" << endl;
+                    break;
+                }
+                // 2. Stalemate Check
+                if (isStalemate(turn, board)) {
+                    cout << "\nSTALEMATE! Game is a draw. " << turn << " has no legal moves." << endl;
+                    break;
+                }
 
-                    for (int j = 0; j < 8; j++)
-                    {
+                // 3. Insufficient Material Check
+                if (hasInsufficientMaterial(board)) {
+                    cout << "\nDRAW! Insufficient material to force a checkmate." << endl;
+                    break;
+                }
+
+                //==================================================================================
+                cout << "\nCurrent Turn: " << turn << endl;
+
+                if (isInCheck(turn, board)) {
+                    cout << "!!! WARNING: YOU ARE IN CHECK !!!" << endl;
+                }
+
+                //==================== DISPLAY BOARD ====================
+                cout << "\n    A  B  C  D  E  F  G  H" << endl;
+                cout << "  --------------------------" << endl;
+                for (int i = 0; i < 8; i++) {
+                    cout << 8 - i << " |";
+                    for (int j = 0; j < 8; j++) {
                         if (board[i][j] != nullptr)
                         {
                             if (board[i][j]->getColor() == "white")
@@ -110,52 +189,93 @@ int main()
                             cout << ".. ";
                         }
                     }
-
                     cout << "| " << 8 - i << endl;
                 }
 
-                cout << "  -------------------------" << endl;
+                cout << "  --------------------------" << endl;
+                cout << "\n    A  B  C  D  E  F  G  H" << endl;
 
-                string from, to;
                 int fromRow, fromCol, toRow, toCol;
+                string from, to;
 
-                cout << "Enter FROM (e.g. E2): ";
+                cout << "Example input: E2 E4" << endl;
+                cout << "Type MENU to return to Main Menu" << endl;
+                cout << "Enter FROM position (e.g., C2): ";
                 cin >> from;
 
-                cout << "Enter TO (e.g. E4): ";
+                // ================= RETURN TO MENU =================
+                if (from == "MENU" || from == "menu")
+                {
+                    gameRunning = false;
+                    break;
+                }
+
+                cout << "Enter TO position (e.g., C3): ";
                 cin >> to;
 
-                // ===== BASIC VALIDATION =====
+                //******************************
+                // PHASE 3 start HERE
+                //==input Validation====
+                if (from.empty() || to.empty())
+                {
+                    cout << "Empty input is not allowed!" << endl;
+                    system("pause");
+                    continue;
+                }
                 if (from.length() != 2 || to.length() != 2)
                 {
-                    cout << "Invalid input format!" << endl;
+                    cout << "Invalid input format! Use format like E2" << endl;
                     system("pause");
                     continue;
                 }
-
-                fromCol = toupper(from[0]) - 'A';
-                fromRow = 8 - (from[1] - '0');
-                toCol = toupper(to[0]) - 'A';
-                toRow = 8 - (to[1] - '0');
-
-                if (fromRow < 0 || fromRow > 7 || fromCol < 0 || fromCol > 7 ||
-                    toRow < 0 || toRow > 7 || toCol < 0 || toCol > 7)
+                //NOW CHECK COLOUMNS
+                if (toupper(from[0]) < 'A' || toupper(from[0]) > 'H' ||
+                    toupper(to[0]) < 'A' || toupper(to[0]) > 'H')
                 {
-                    cout << "Invalid coordinates!" << endl;
+                    cout << "Invalid column! Use A to H" << endl;
+                    system("pause");
+                    continue;
+                }
+                //Now Row CHECK
+                if (from[1] < '1' || from[1] > '8' || to[1] < '1' || to[1] > '8')
+                {
+                    cout << "invalid Row ! use 1 to 8 " << endl;
                     system("pause");
                     continue;
                 }
 
+                parseInput(from, fromRow, fromCol);
+                parseInput(to, toRow, toCol);
+
+                // ===== SAME POSITION CHECK =====
+                if (fromRow == toRow && fromCol == toCol)
+                {
+                    cout << "Invalid move: Source and destination are same!" << endl;
+                    system("pause");
+                    continue;
+                }
+
+                // ===== INPUT VALIDATION ERROR =====
+                if (fromRow < 0 || fromRow >= 8 || fromCol < 0 || fromCol >= 8 ||
+                    toRow < 0 || toRow >= 8 || toCol < 0 || toCol >= 8)
+                {
+                    cout << "Invalid input coordinates!" << endl;
+                    system("pause");
+                    continue;
+                }
+
+                // ===== NO PIECE ERROR =====
                 if (board[fromRow][fromCol] == nullptr)
                 {
-                    cout << "No piece selected!" << endl;
+                    cout << "Invalid move: No piece at this position!" << endl;
                     system("pause");
                     continue;
                 }
 
+                // ===== TURN ERROR =====
                 if (board[fromRow][fromCol]->getColor() != turn)
                 {
-                    cout << "Not your turn!" << endl;
+                    cout << "Not Your Turn!" << endl;
                     system("pause");
                     continue;
                 }
@@ -163,41 +283,97 @@ int main()
                 // ===== MOVE VALIDATION =====
                 if (board[fromRow][fromCol]->isValid_Move(toRow, toCol, board))
                 {
-                    board[toRow][toCol] = board[fromRow][fromCol];
-                    board[fromRow][fromCol] = nullptr;
+                    // ===== SAME TEAM PIECE CHECK =====
+                    if (board[toRow][toCol] != nullptr &&
+                        board[toRow][toCol]->getColor() == turn)
+                    {
+                        cout << "Move rejected: cannot capture your own piece!" << endl;
+                        system("pause");
+                        continue;
+                    }
 
-                    board[toRow][toCol]->setPosition(toRow, toCol);
+                    // ===== KING SAFETY CHECK =====
+                    if (!isMoveSafe(fromRow, fromCol, toRow, toCol, turn, board))
+                    {
+                        cout << "Move leaves your king in check!" << endl;
+                        system("pause");
+                        continue;
+                    }
 
+                    // ===== SPECIAL MOVES + NORMAL MOVE =====
+                    makeMove(board, fromRow, fromCol, toRow, toCol);
+
+                    // ===== UPDATE KING MOVEMENT FLAGS =====
+                    Piece* movedPiece = board[toRow][toCol];
+
+                    if (movedPiece != nullptr && dynamic_cast<King*>(movedPiece))
+                    {
+                        if (movedPiece->getColor() == "white")
+                            whiteKingMoved = true;
+                        else
+                            blackKingMoved = true;
+                    }
+
+                    // ===== UPDATE ROOK MOVEMENT FLAGS =====
+                    if (movedPiece != nullptr && dynamic_cast<Rook*>(movedPiece))
+                    {
+                        if (movedPiece->getColor() == "white")
+                        {
+                            if (fromCol == 0)
+                                whiteRookAMoved = true;
+                            else if (fromCol == 7)
+                                whiteRookHMoved = true;
+                        }
+                        else
+                        {
+                            if (fromCol == 0)
+                                blackRookAMoved = true;
+                            else if (fromCol == 7)
+                                blackRookHMoved = true;
+                        }
+                    }
+
+                    // Switch turn
                     turn = (turn == "white") ? "black" : "white";
+                    continue;
                 }
                 else
                 {
-                    cout << "Invalid move!" << endl;
+                    cout << "Invalid move according to piece rules!" << endl;
                     system("pause");
                 }
             }
 
+            // Clean up board memory
             deleteBoard(board);
         }
+
+        // ================= PROJECT INFO =================
         else if (choice == 2)
         {
             aboutProject();
         }
+
+        // ================= RULES =================
         else if (choice == 3)
         {
             showRules();
         }
+
+        // ================= EXIT =================
         else if (choice == 4)
         {
-            cout << "Game Closed!" << endl;
+            cout << "\nThank You For Playing!" << endl;
             break;
         }
+
         else
         {
-            cout << "Invalid choice!" << endl;
+            cout << "Invalid Choice!" << endl;
             system("pause");
         }
     }
-
+    cout << "\nGame Closed Successfully!" << endl;
+    system("pause");
     return 0;
 }
