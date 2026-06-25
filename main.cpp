@@ -59,7 +59,139 @@ void aboutProject()
 void deleteBoard(Piece* board[8][8]) {
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
+<<<<<<< HEAD
             if (board[i][j] != nullptr) {
+=======
+            if (board[i][j] != nullptr)
+                cout << board[i][j]->getSymbol() << " ";
+            else
+                cout << ". ";
+        }
+
+        cout << "| " << 8 - i << endl;
+    }
+
+    cout << "  -----------------" << endl;
+    cout << "   A B C D E F G H" << endl;
+    
+    string turn = "white";//Turn variable
+    while (true)
+    {
+        // STEP 1: Variables for move
+        int fromRow, fromCol;   // source position (where piece is)
+        int toRow, toCol;       // destination position (where to move)
+
+        //Take user input
+        cout << "Enter FROM position (row col): ";
+        cin >> fromRow >> fromCol;
+        cout << "Enter TO position (row col): ";
+        cin >> toRow >> toCol;
+
+        // Phase 3: input validation check
+        //Check source validity
+        // If there is no piece at selected position
+        if (board[fromRow][fromCol] == nullptr)
+        {
+            cout << "Invalid move: No piece at this position!" << endl;
+
+            // skip this iteration and ask again
+            continue;
+        }
+
+        
+        // Next steps will go here
+        // - Check turn (white/black)
+       // Phase 3: turn validation
+        if ((board[fromRow][fromCol]->getColor()) == turn)
+        {
+            cout << "Ok " << endl;
+           
+        }
+        else
+        {
+            cout << "Not Your Turn " << endl;
+            //RULE : Only white pieces move when turn is white, same for black”
+            continue;//skip this iteration , go back to input
+        }
+        // - Check valid move using isValid_Move()
+        if (board[fromRow][fromCol]->isValid_Move(toRow, toCol))
+            // Move Validation
+            //passing destination Row and Columns
+        {
+            // - Check destination cell
+            //check 
+            if (board[toRow][toCol] == nullptr)
+            {
+                // EMPTY CELL = normal move
+                /*  Move piece pointer
+                    Take piece from source
+                    Put it in destination*/
+                board[toRow][toCol] = board[fromRow][fromCol];
+
+               /*   Clear old square
+                    Make source square empty*/
+                 board[fromRow][fromCol]=nullptr;
+                //Update piece position
+               // Tell piece its new row / col
+                board[toRow][toCol]->setPosition(toRow,toCol);
+                // Switch turn
+                if (turn == "white")
+                    turn = "black";
+                else
+                    turn = "white";
+
+                continue;//go back for next move
+            }
+            else
+            {
+                //Same-color rejection
+                if (board[toRow][toCol]->getColor() == turn)
+                {
+                    cout << "Move is Rejected because it has same team Piece " << endl;
+                    continue;//go back to input
+                }
+                else
+                {
+                    // CAPTURE CASE (enemy piece)
+
+                                    /* Replace enemy piece with current piece */
+                    board[toRow][toCol] = board[fromRow][fromCol];
+
+                    /* Clear old square */
+                    board[fromRow][fromCol] = nullptr;
+
+                    // Update position
+                    board[toRow][toCol]->setPosition(toRow, toCol);
+
+                    // Switch turn
+                    if (turn == "white")
+                        turn = "black";
+                    else
+                        turn = "white";
+
+                    continue;//go back for next move
+                }
+            }
+
+
+        }
+        else
+        {
+            cout << "Invalid Move according to piece rules!" << endl;
+            continue;
+        }
+       
+        // - Move piece
+    }
+    // Freeing memory of the 8x8 Matrix
+    for (int i = 0; i < 8; i++)
+    {
+        for (int j = 0; j < 8; j++)
+        {
+            //Best Practice to check that if it is null or occupied
+            if (board[i][j] != nullptr)
+            {
+>>>>>>> 331143e5838a6b3bab7bd6a6a50c6bdab072ed0f
                 delete board[i][j];
                 board[i][j] = nullptr;
             }
